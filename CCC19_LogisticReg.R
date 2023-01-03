@@ -1,16 +1,26 @@
+##### Presetting ######
+rm(list = ls()) # Clean variable
+memory.limit(150000)
+# options(stringsAsFactors = FALSE)
+# Sys.setlocale(category = "LC_ALL", locale = "UTF-8")
 
-library(Hmisc)
-library(rms)
-library(MatchIt)
-library(dplyr)
+##### Load Packages #####
+source("FUN_Package_InstLoad.R")
+FUN_Basic.set <- c("tidyverse","Hmisc","rms","MatchIt","dplyr","survey","tableone")
+
+FUN_Package_InstLoad(Basic.set = FUN_Basic.set, BiocManager.set = FUN_BiocManager.set)
+rm(FUN_Basic.set)
+
+
+# require(devtools)
+# install_version("ipw", version = "1.0-11", repos = "http://cran.us.r-project.org")
 library(ipw)
-library(survey)
-library(tableone)
 
+##### Function setting #####
+## Prepossession
 source("CCC19_CombineReport.R")
 
-
-load("../Data/CCC19_CancerDiscover_data.RData")
+load("D:/Dropbox/##_GitHub/##_Charlene/Biostatistics_Course_1111_R254500/Data/CCC19_CancerDiscover_data.RData")
 summary(ccc19_lc)
 
 
@@ -48,7 +58,7 @@ Imp.data0 <- aregImpute(~ dead30 + age_cph + sex + race + region + smoking2 +
 ### Before balancing covariate distributions
 fmi <- fit.mult.impute(dead30 ~ treatment_hcq + age_cph + sex + race + region + smoking2 +
                          obesitylevel + dm2 + pulm + card + renal + htn + ecogcat2 +
-                         cancer_status_v2 + severity_of_covid_19_v2 + 
+                         cancer_status_v2 + severity_of_covid_19_v2 +
                          ac_apa, fitter = lrm, xtrans = Imp.data0, data = ccc19_lc)
 round(coefs.to.OR(fmi)$ORCI, 3)
 
@@ -72,14 +82,14 @@ Imputations <- Imp.data0$n.impute
 models.PSM.hcq <- lapply(1:Imputations, function(im1) {
   #im1 <- 5
   full_dat1 <- fill_data(im = im1) # form complete data
-  
+
   full_dat1$age_cph <- full_dat1$age_cph/10 # one unit, per 10 years
 
   ## Create a dichotomous treatment variable for matching
   full_dat1$hcq.2 <- factor(full_dat1$treatment_hcq,
                                 levels=c("Negative control", "Positive control", "HCQ alone", "HCQ+anything"),
                                 labels = c("0", "0", "1", "1"))
-  
+
 
   ## Start matching
   set.seed(42)
@@ -87,11 +97,11 @@ models.PSM.hcq <- lapply(1:Imputations, function(im1) {
                             obesitylevel + dm2 + pulm + card + renal + htn + ecogcat2 +
                             cancer_status_v2 + severity_of_covid_19_v2 + ac_apa
   match.it <- do.call(matchit, list(formula = formula.match, data = full_dat1, method = "nearest",
-                                    ratio=2, caliper = 0.3, replace = F))   
+                                    ratio=2, caliper = 0.3, replace = F))
   # match.it$nn
   # plot(match.it, type = "jitter", interactive = F)
   # plot(match.it, type = "histogram", interactive = F)
-  
+
   ## Data after matching
   dta_m <- match.data(match.it)
   # round(summary(match.it, standardize = T)$sum.matched,3)
@@ -113,7 +123,7 @@ models.PSM.hcq <- lapply(1:Imputations, function(im1) {
   # A formula for logistic regression analysis
   formula1 <- dead30 ~ treatment_hcq + age_cph + sex + race + region + smoking2 +
     obesitylevel + dm2 + pulm + card + renal + htn + ecogcat2 +
-    cancer_status_v2 + severity_of_covid_19_v2 + 
+    cancer_status_v2 + severity_of_covid_19_v2 +
     ac_apa
 
 
@@ -137,10 +147,10 @@ round(coefs.to.OR(RRR$fmi)$ORCI,3)
 models.IPTW.hcq <- lapply(1:Imputations, function(im1) {
   #im1 <- 5
   full_dat1 <- fill_data(im = im1) # form complete data
-  
+
   full_dat1$age_cph <- full_dat1$age_cph/10 # one unit, per 10 years
-  
-  
+
+
   temp <- ipwpoint(exposure = treatment_hcq,
                    family = "multinomial",
                    numerator = ~ 1, ## must exist
@@ -149,27 +159,27 @@ models.IPTW.hcq <- lapply(1:Imputations, function(im1) {
                      cancer_status_v2 + severity_of_covid_19_v2 + ac_apa,
                    data = full_dat1)
   full_dat1$ipws <- temp$ipw.weights
-  
+
   # hist(full_dat1$weights)
   Qs <- quantile(full_dat1$ipws, probs = c(0.01, 0.99))
   full_dat1$ipws <- ifelse(full_dat1$ipws > Qs[2], Qs[2], full_dat1$ipws)
   full_dat1$ipws <- ifelse(full_dat1$ipws < Qs[1], Qs[1], full_dat1$ipws)
-  
+
   #weighteddata <- svydesign(ids = ~ 1, weights = ~ ipws, data = full_dat1)
-  #weightedtable <- svyCreateTableOne(vars = colnames(full_dat1)[-c(1, 17:20)], 
+  #weightedtable <- svyCreateTableOne(vars = colnames(full_dat1)[-c(1, 17:20)],
   #                                   strata = "treatment_hcq", data = weighteddata, test=FALSE)
   #sink(paste0("Table1_postIPTW_one.txt"))
   #print(weightedtable, smd=TRUE)
   #sink()
 
-  
+
   # A formula for logistic regression analysis
   formula1 <- dead30 ~ treatment_hcq + age_cph + sex + race + region + smoking2 +
     obesitylevel + dm2 + pulm + card + renal + htn + ecogcat2 +
-    cancer_status_v2 + severity_of_covid_19_v2 + 
+    cancer_status_v2 + severity_of_covid_19_v2 +
     ac_apa
-  
-  fit.bin <- svyglm(formula1, 
+
+  fit.bin <- svyglm(formula1,
                     design = svydesign(~ 1, weights = ~ ipws, data = full_dat1), family = "binomial")
   fit.bin
 })
