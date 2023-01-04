@@ -48,7 +48,14 @@ sink(paste0("Table1.txt"))
  print(output0, long=TRUE, what = "%")
 sink()
 
-
+## Plot
+plot(output0)
+plot(output0[["results"]][[".ALL."]][["stats"]][["age_cph"]])
+plot(output0[["results"]][[".ALL."]][["stats"]][["sex"]])
+plot(output0[["results"]][[".ALL."]][["stats"]][["race"]])
+plot(output0[["results"]][[".ALL."]][["stats"]][["region"]])
+plot(output0[["results"]][[".ALL."]][["stats"]][["smoking2"]])
+plot(output0[["results"]][[".ALL."]][["stats"]][["obesitylevel"]])
 
 
 ##### Impute missing values #####
