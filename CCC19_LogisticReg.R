@@ -6,7 +6,8 @@ memory.limit(150000)
 
 ##### Load Packages #####
 source("FUN_Package_InstLoad.R")
-FUN_Basic.set <- c("tidyverse","Hmisc","rms","MatchIt","dplyr","survey","tableone")
+FUN_Basic.set <- c("tidyverse","Hmisc","rms","MatchIt","dplyr","survey","tableone",
+                   "rvest")
 
 FUN_Package_InstLoad(Basic.set = FUN_Basic.set, BiocManager.set = FUN_BiocManager.set)
 rm(FUN_Basic.set)
@@ -50,12 +51,30 @@ sink()
 
 ## Plot
 plot(output0)
+plot(output0,groups='sex')
+plot(output0$results$.ALL.$stats$age_cph)
 plot(output0[["results"]][[".ALL."]][["stats"]][["age_cph"]])
 plot(output0[["results"]][[".ALL."]][["stats"]][["sex"]])
 plot(output0[["results"]][[".ALL."]][["stats"]][["race"]])
 plot(output0[["results"]][[".ALL."]][["stats"]][["region"]])
 plot(output0[["results"]][[".ALL."]][["stats"]][["smoking2"]])
 plot(output0[["results"]][[".ALL."]][["stats"]][["obesitylevel"]])
+TTT <- html(output0)
+
+
+#### COnvert  summaryM result to dataframe ####
+## Ref: https://stackoverflow.com/questions/32400916/convert-html-tables-to-r-data-frame
+
+# ## Error
+# library(dplyr)
+# install.packages('XML')
+# library(XML)
+# questions <- readHTMLTable(TTT, trim=T, as.data.frame=T, header=T)
+# data<-bind_rows(TTT)
+
+library(rvest)
+output0.df <- as.data.frame(read_html(TTT) %>% html_table(fill=TRUE))
+
 
 
 ##### Impute missing values #####
