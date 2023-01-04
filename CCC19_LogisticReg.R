@@ -20,34 +20,38 @@ library(ipw)
 ## Prepossession
 source("CCC19_CombineReport.R")
 
+##### Load datasets  #####
 load("D:/Dropbox/##_GitHub/##_Charlene/Biostatistics_Course_1111_R254500/Data/CCC19_CancerDiscover_data.RData")
 summary(ccc19_lc)
 
 
+##### Data preprocessing  #####
 ## Set Negative control as the reference group
-ccc19_lc$treatment_hcq <- factor(ccc19_lc$treatment_hcq,
+ccc19_lc$treatment_hcq <- factor(ccc19_lc$treatment_hcq, # Hydroxychloroquine (HCQ)
                                  levels=c("Negative control", "Positive control", "HCQ alone", "HCQ+anything"))
-ccc19_lc$treatment_rem <- factor(ccc19_lc$treatment_rem,
+ccc19_lc$treatment_rem <- factor(ccc19_lc$treatment_rem, # Remdesivir (Rem)
                                  levels=c("Negative control", "Positive control", "Rem alone", "Rem+anything"))
-ccc19_lc$treatment_cs <- factor(ccc19_lc$treatment_cs,
+ccc19_lc$treatment_cs <- factor(ccc19_lc$treatment_cs, # Corticosteroid (CS)
                                 levels=c("Negative control", "Positive control", "Steroids alone", "Steroids+anything"))
 
 
-## Descriptive statistics, according to treatment_hcq
+## Descriptive statistics, according to treatment_rem
 output0 <- summaryM(dead30 + age_cph + sex + race + region + smoking2 +
-                                 obesitylevel + dm2 + pulm + card + renal + htn + ecogcat2 +
-                                 cancer_status_v2 + severity_of_covid_19_v2 + ac_apa
-                                 ~ treatment_hcq,
-                                 #~ 1,
-                                 data = ccc19_lc, test = F, overall = F, na.include=T)
-#sink(paste0("Table1.txt"))
-#  print(output0, long=TRUE, what = "%")
-#sink()
+                    obesitylevel + dm2 + pulm + card + renal + htn + ecogcat2 +
+                    cancer_status_v2 + severity_of_covid_19_v2 + ac_apa
+                    ~ treatment_rem,
+                    #~ 1,
+                    data = ccc19_lc, test = F, overall = F, na.include=T)
+
+## Export txt
+sink(paste0("Table1.txt"))
+ print(output0, long=TRUE, what = "%")
+sink()
 
 
 
 
-## Impute missing values
+##### Impute missing values #####
 set.seed(42)
 Imp.data0 <- aregImpute(~ dead30 + age_cph + sex + race + region + smoking2 +
                           obesitylevel + dm2 + pulm + card + renal + htn + ecogcat2 +
@@ -56,7 +60,7 @@ Imp.data0 <- aregImpute(~ dead30 + age_cph + sex + race + region + smoking2 +
                           data = ccc19_lc, n.impute = 10)
 
 ### Before balancing covariate distributions
-fmi <- fit.mult.impute(dead30 ~ treatment_hcq + age_cph + sex + race + region + smoking2 +
+fmi <- fit.mult.impute(dead30 ~ treatment_rem + age_cph + sex + race + region + smoking2 +
                          obesitylevel + dm2 + pulm + card + renal + htn + ecogcat2 +
                          cancer_status_v2 + severity_of_covid_19_v2 +
                          ac_apa, fitter = lrm, xtrans = Imp.data0, data = ccc19_lc)
@@ -86,8 +90,8 @@ models.PSM.hcq <- lapply(1:Imputations, function(im1) {
   full_dat1$age_cph <- full_dat1$age_cph/10 # one unit, per 10 years
 
   ## Create a dichotomous treatment variable for matching
-  full_dat1$hcq.2 <- factor(full_dat1$treatment_hcq,
-                                levels=c("Negative control", "Positive control", "HCQ alone", "HCQ+anything"),
+  full_dat1$hcq.2 <- factor(full_dat1$treatment_rem,
+                                levels=c("Negative control", "Positive control", "Rem alone", "Rem+anything"),
                                 labels = c("0", "0", "1", "1"))
 
 
@@ -105,23 +109,23 @@ models.PSM.hcq <- lapply(1:Imputations, function(im1) {
   ## Data after matching
   dta_m <- match.data(match.it)
   # round(summary(match.it, standardize = T)$sum.matched,3)
-  # with(dta_m, tapply(distance , list(treatment_hcq), summary))
-  # PS.4density(dta_m, treatment = "treatment_hcq", ylim = c(0,6)) # after matching
+  # with(dta_m, tapply(distance , list(treatment_rem), summary))
+  # PS.4density(dta_m, treatment = "treatment_rem", ylim = c(0,6)) # after matching
   # full_dat1$distance <- fitted(fit0 <- glm(formula = formula.match, data = full_dat1, family = "binomial"))
-  # PS.4density(full_dat1, treatment = "treatment_hcq", main = "Before matching") # before matching
+  # PS.4density(full_dat1, treatment = "treatment_rem", main = "Before matching") # before matching
 
   ## Create Table 1 after PSM
   #output1 <- summaryM(age_cph + sex + race + region + smoking2 +
   #                      obesitylevel + dm2 + pulm + card + renal + htn + ecogcat2 +
   #                      cancer_status_v2 + severity_of_covid_19_v2 + ac_apa
-  #                      ~ treatment_hcq,
+  #                      ~ treatment_rem,
   #                      data = dta_m, overall = F)
   #sink(paste0("Table1_afterPSM.txt"))
   #  print(output1, long=TRUE, what = "%")
   #sink()
 
   # A formula for logistic regression analysis
-  formula1 <- dead30 ~ treatment_hcq + age_cph + sex + race + region + smoking2 +
+  formula1 <- dead30 ~ treatment_rem + age_cph + sex + race + region + smoking2 +
     obesitylevel + dm2 + pulm + card + renal + htn + ecogcat2 +
     cancer_status_v2 + severity_of_covid_19_v2 +
     ac_apa
