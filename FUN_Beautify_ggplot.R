@@ -1,21 +1,23 @@
 FUN_Beautify_ggplot = function( P1,
-                           LegPos = c(0.75, 0.15),LegBox = "vertical",LegDir="vertical",
-                           LegTitleSize=15 ,LegTextSize = 12,
+                           LegPos = c(0.8, 0.85),LegBox = "vertical",LegDir="vertical",
+                           LegTitleSize=17 ,LegTextSize = 15,
                            TH= 0.05,TV= -10, TitleSize = 20,
-                           XtextSize=15,  YtextSize=17,  XaThick=1.2,  YaThick=1.2, xangle = 90,
-                           AxisTitleSize=2, AspRat=1,SubTitSize = 15,
+                           XtextSize=17,  YtextSize=17,  XaThick=1.2,  YaThick=1.2, xangle = 60,
+                           AxisTitleSize=1.5, AspRat=1,SubTitSize = 15,
                            OL_Thick = 2.5
                            ){
 
   library(ggplot2)
   library(graphics)
 
-  P2 <-  P1 +
-    theme(axis.text.x = element_text(face="bold",  size = XtextSize,angle = xangle, hjust = 1, vjust = .5), # Change the size along the x axis
-          axis.text.y = element_text(face="bold",size = YtextSize), # Change the size along the y axis
+  P2 <-  P1  +
+    theme_classic() + # https://www.statology.org/ggplot-background-color/
+    # theme_bw() # http://www.sthda.com/english/wiki/ggplot2-themes-and-background-colors-the-3-elements+
+    theme(axis.text.x = element_text(face="bold", colour="black",  size = XtextSize,angle = xangle, hjust = 1, vjust = 1), # Change the size along the x axis
+          axis.text.y = element_text(face="bold", colour="black",size = YtextSize), # Change the size along the y axis
 
           axis.line = element_line(colour = "darkblue", size = 2, linetype = "solid"),
-          axis.title = element_text(size = rel(AxisTitleSize),face="bold"),
+          axis.title = element_text(size = rel(AxisTitleSize),face="bold",colour = "#3f3369"),
           plot.title = element_text(color="black",
                                     size=TitleSize,
                                     face="bold.italic",
