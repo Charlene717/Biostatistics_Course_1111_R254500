@@ -100,10 +100,6 @@ pdf(file = paste0(Save.Path,"/CCC19_Descr_Stats_Barplot_sex.pdf"),width = 7, hei
 dev.off()
 
 
-
-
-
-
 ##### Impute missing values #####
 set.seed(42)
 Imp.data0 <- aregImpute(~ dead30 + age_cph + sex + race + region + smoking2 +
