@@ -85,17 +85,18 @@ sex.df$Percent <-  sprintf("%0.2f", sex.df$Number/sex.df$`sum(Number)`*100 %>% a
 ## print sex
 library(ggplot2)
 Plt.SexDS <- ggplot(data=sex.df, aes(x = Group, y = Number, fill = sex.df[,1])) +
-                    geom_bar(stat="identity", position=position_dodge(),alpha=.8)
+                    geom_bar(stat="identity", position=position_dodge(),alpha=.7)
 Plt.SexDS
 Plt.SexDS %>% FUN_Beautify_ggplot +
-              scale_fill_manual("Sex",values=c("#bf54a3","#5b46a3","#0b2c73")) +
-              geom_text(aes(label=Number),position = position_dodge(0.9), vjust=-0.3, size=3.5) +
-              geom_text(aes(label=paste0(Percent,"%")),position = position_dodge(0.9), vjust=1, size=3,colour = "#e5defa")
+              scale_fill_manual("Sex",values=c("#bf54a3","#5b46a3","#41548a","#45856c","#747575")) +
+              geom_text(aes(label=Number),position = position_dodge(0.95), vjust=-0.6, size=3.5,angle =45, colour="#c70e67") +
+              geom_text(aes(label=paste0(Percent,"%")),position = position_dodge(0.9), vjust=0.5, size=2,colour = "#2a2e2d",angle =45) -> Plt.SexDS_B
+Plt.SexDS_B
+
 
 ## Export pdf
-pdf(file = paste0(Save.Path,"/CCC19_Descr_Stats_Barplot_Sex.pdf"),width = 7, height = 7 )
-  Plt.SexDS %>% FUN_Beautify_ggplot +
-    scale_fill_manual("Sex",values=c("#bf54a3","#5b46a3"))
+pdf(file = paste0(Save.Path,"/CCC19_Descr_Stats_Barplot_sex.pdf"),width = 7, height = 7 )
+  Plt.SexDS_B
 dev.off()
 
 

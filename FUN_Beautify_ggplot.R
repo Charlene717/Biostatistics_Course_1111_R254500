@@ -1,5 +1,5 @@
 FUN_Beautify_ggplot = function( P1,
-                           LegPos = c(0.8, 0.85),LegBox = "vertical",LegDir="vertical",
+                           LegPos = c(0.7, 0.8),LegBox = "vertical",LegDir="vertical",
                            LegTitleSize=17 ,LegTextSize = 15,
                            TH= 0.05,TV= -10, TitleSize = 20,
                            XtextSize=15,  YtextSize=15,  XaThick=0.5,  YaThick=0.5, xangle = 60,
