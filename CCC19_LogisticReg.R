@@ -20,6 +20,15 @@ library(ipw)
 ##### Function setting #####
 ## Prepossession
 source("CCC19_CombineReport.R")
+source("FUN_Beautify_ggplot.R")
+
+
+#### Current path and new folder setting* ####
+Save.Path = paste0(getwd(),"/",Sys.Date(),"_","CCC19Results")
+
+## Create new folder
+if (!dir.exists(Save.Path)){dir.create(Save.Path)}
+
 
 ##### Load datasets  #####
 load("D:/Dropbox/##_GitHub/##_Charlene/Biostatistics_Course_1111_R254500/Data/CCC19_CancerDiscover_data.RData")
@@ -36,6 +45,7 @@ ccc19_lc$treatment_cs <- factor(ccc19_lc$treatment_cs, # Corticosteroid (CS)
                                 levels=c("Negative control", "Positive control", "Steroids alone", "Steroids+anything"))
 
 
+##### Descriptive statistics #####
 ## Descriptive statistics, according to treatment_rem
 output0 <- summaryM(dead30 + age_cph + sex + race + region + smoking2 +
                     obesitylevel + dm2 + pulm + card + renal + htn + ecogcat2 +
@@ -45,7 +55,7 @@ output0 <- summaryM(dead30 + age_cph + sex + race + region + smoking2 +
                     data = ccc19_lc, test = F, overall = F, na.include=T)
 
 ## Export txt
-sink(paste0("Table1.txt"))
+sink(paste0(Save.Path,"/CCC19_Descr_Stats_Table1.txt"))
  print(output0, long=TRUE, what = "%")
 sink()
 
@@ -53,13 +63,27 @@ sink()
 plot(output0)
 plot(output0[["results"]][[".ALL."]][["stats"]][["age_cph"]]) # plot(output0$results$.ALL.$stats$age_cph)
 plot(output0[["results"]][[".ALL."]][["stats"]][["sex"]])
-plot(output0[["results"]][[".ALL."]][["stats"]][["race"]])
 
 #### COnvert  summaryM result to dataframe ####
 ## Ref: https://stackoverflow.com/questions/32400916/convert-html-tables-to-r-data-frame
 library(rvest)
 output0.df <- as.data.frame(read_html(html(output0)) %>% html_table(fill=TRUE))
 
+## ggPlot
+## Ref: http://www.sthda.com/english/wiki/ggplot2-barplots-quick-start-guide-r-software-and-data-visualization
+
+sex.df <- output0[["results"]][[".ALL."]][["stats"]][["sex"]] %>% as.data.frame()
+colnames(sex.df) <- c("Sex","Group","Number")
+sex.df$Group <- gsub("Positive", "Pos", sex.df$Group)
+sex.df$Group <- gsub("Negative", "Neg", sex.df$Group)
+
+## print sex
+library(ggplot2)
+Plt.SexDS <- ggplot(data=sex.df, aes(x = Group, y = Number, fill = sex.df[,1])) +
+                    geom_bar(stat="identity", position=position_dodge(),alpha=.8)
+Plt.SexDS
+Plt.SexDS %>% FUN_Beautify_ggplot +
+              scale_fill_manual("Sex",values=c("#bf54a3","#5b46a3"))
 
 
 ##### Impute missing values #####
@@ -72,9 +96,9 @@ Imp.data0 <- aregImpute(~ dead30 + age_cph + sex + race + region + smoking2 +
 
 ### Before balancing covariate distributions
 fmi <- fit.mult.impute(dead30 ~ treatment_rem + age_cph + sex + race + region + smoking2 +
-                         obesitylevel + dm2 + pulm + card + renal + htn + ecogcat2 +
-                         cancer_status_v2 + severity_of_covid_19_v2 +
-                         ac_apa, fitter = lrm, xtrans = Imp.data0, data = ccc19_lc)
+                                obesitylevel + dm2 + pulm + card + renal + htn + ecogcat2 +
+                                cancer_status_v2 + severity_of_covid_19_v2 +
+                                ac_apa, fitter = lrm, xtrans = Imp.data0, data = ccc19_lc)
 round(coefs.to.OR(fmi)$ORCI, 3)
 
 
@@ -127,10 +151,10 @@ models.PSM.hcq <- lapply(1:Imputations, function(im1) {
 
   ## Create Table 1 after PSM
   #output1 <- summaryM(age_cph + sex + race + region + smoking2 +
-  #                      obesitylevel + dm2 + pulm + card + renal + htn + ecogcat2 +
-  #                      cancer_status_v2 + severity_of_covid_19_v2 + ac_apa
-  #                      ~ treatment_rem,
-  #                      data = dta_m, overall = F)
+  #                    obesitylevel + dm2 + pulm + card + renal + htn + ecogcat2 +
+  #                    cancer_status_v2 + severity_of_covid_19_v2 + ac_apa
+  #                    ~ treatment_rem,
+  #                    data = dta_m, overall = F)
   #sink(paste0("Table1_afterPSM.txt"))
   #  print(output1, long=TRUE, what = "%")
   #sink()
