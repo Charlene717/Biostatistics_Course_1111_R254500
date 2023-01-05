@@ -77,13 +77,21 @@ colnames(sex.df) <- c("Sex","Group","Number")
 sex.df$Group <- gsub("Positive", "Pos", sex.df$Group)
 sex.df$Group <- gsub("Negative", "Neg", sex.df$Group)
 
+## Ref: https://cloud.tencent.com/developer/ask/sof/103120
+## Add percent
+sex.df <- left_join(sex.df,sex.df %>% group_by(Group) %>% summarise(sum(Number)))
+sex.df$Percent <-  sprintf("%0.2f", sex.df$Number/sex.df$`sum(Number)`*100 %>% as.numeric())
+
 ## print sex
 library(ggplot2)
 Plt.SexDS <- ggplot(data=sex.df, aes(x = Group, y = Number, fill = sex.df[,1])) +
                     geom_bar(stat="identity", position=position_dodge(),alpha=.8)
 Plt.SexDS
 Plt.SexDS %>% FUN_Beautify_ggplot +
-              scale_fill_manual("Sex",values=c("#bf54a3","#5b46a3"))
+              scale_fill_manual("Sex",values=c("#bf54a3","#5b46a3","#0b2c73")) +
+              geom_text(aes(label=Number),position = position_dodge(0.9), vjust=-0.3, size=3.5) +
+              geom_text(aes(label=paste0(Percent,"%")),position = position_dodge(0.9), vjust=1, size=3,colour = "#e5defa")
+
 ## Export pdf
 pdf(file = paste0(Save.Path,"/CCC19_Descr_Stats_Barplot_Sex.pdf"),width = 7, height = 7 )
   Plt.SexDS %>% FUN_Beautify_ggplot +
