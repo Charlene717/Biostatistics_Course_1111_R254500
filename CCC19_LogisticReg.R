@@ -84,6 +84,15 @@ Plt.SexDS <- ggplot(data=sex.df, aes(x = Group, y = Number, fill = sex.df[,1])) 
 Plt.SexDS
 Plt.SexDS %>% FUN_Beautify_ggplot +
               scale_fill_manual("Sex",values=c("#bf54a3","#5b46a3"))
+## Export pdf
+pdf(file = paste0(Save.Path,"/CCC19_Descr_Stats_Barplot_Sex.pdf"),width = 7, height = 7 )
+  Plt.SexDS %>% FUN_Beautify_ggplot +
+    scale_fill_manual("Sex",values=c("#bf54a3","#5b46a3"))
+dev.off()
+
+
+
+
 
 
 ##### Impute missing values #####

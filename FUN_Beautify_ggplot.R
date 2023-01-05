@@ -2,9 +2,9 @@ FUN_Beautify_ggplot = function( P1,
                            LegPos = c(0.8, 0.85),LegBox = "vertical",LegDir="vertical",
                            LegTitleSize=17 ,LegTextSize = 15,
                            TH= 0.05,TV= -10, TitleSize = 20,
-                           XtextSize=17,  YtextSize=17,  XaThick=1.2,  YaThick=1.2, xangle = 60,
+                           XtextSize=15,  YtextSize=15,  XaThick=0.5,  YaThick=0.5, xangle = 60,
                            AxisTitleSize=1.5, AspRat=1,SubTitSize = 15,
-                           OL_Thick = 2.5
+                           OL_Thick = 2.2
                            ){
 
   library(ggplot2)
