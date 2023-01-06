@@ -69,36 +69,6 @@ plot(output0[["results"]][[".ALL."]][["stats"]][["sex"]])
 library(rvest)
 output0.df <- as.data.frame(read_html(html(output0)) %>% html_table(fill=TRUE))
 
-# ## ggPlot
-# ## Ref: http://www.sthda.com/english/wiki/ggplot2-barplots-quick-start-guide-r-software-and-data-visualization
-#
-# sex.df <- output0[["results"]][[".ALL."]][["stats"]][["sex"]] %>% as.data.frame()
-# colnames(sex.df) <- c("Sex","Group","Number")
-# sex.df$Group <- gsub("Positive", "Pos", sex.df$Group)
-# sex.df$Group <- gsub("Negative", "Neg", sex.df$Group)
-#
-# ## Ref: https://cloud.tencent.com/developer/ask/sof/103120
-# ## Add percent
-# sex.df <- left_join(sex.df,sex.df %>% group_by(Group) %>% summarise(sum(Number)))
-# sex.df$Percent <-  sprintf("%0.2f", sex.df$Number/sex.df$`sum(Number)`*100 %>% as.numeric())
-#
-# ## print sex
-# library(ggplot2)
-# Plt.SexDS <- ggplot(data=sex.df, aes(x = Group, y = Number, fill = sex.df[,1])) +
-#                     geom_bar(stat="identity", position=position_dodge(),alpha=.7)
-# Plt.SexDS
-# Plt.SexDS %>% FUN_Beautify_ggplot +
-#               scale_fill_manual("Sex",values=c("#bf54a3","#5b46a3","#41548a","#45856c","#747575")) +
-#               geom_text(aes(label=Number),position = position_dodge(0.95), vjust=-0.6, size=3.5,angle =45, colour="#c70e67") +
-#               geom_text(aes(label=paste0(Percent,"%")),position = position_dodge(0.9), vjust=0.5, size=2,colour = "#2a2e2d",angle =45) -> Plt.SexDS_B
-# Plt.SexDS_B
-#
-#
-# ## Export pdf
-# pdf(file = paste0(Save.Path,"/CCC19_Descr_Stats_Barplot_sex.pdf"),width = 7, height = 7 )
-#   Plt.SexDS_B
-# dev.off()
-#
 
 ## loop for ggPlot
 pdf(file = paste0(Save.Path,"/CCC19_Descr_Stats_Barplot.pdf"),width = 7, height = 7 )
@@ -283,6 +253,5 @@ models.IPTW.hcq <- lapply(1:Imputations, function(im1) {
 RRR <- CombineImputation(models.IPTW.hcq)
 
 round(coefs.to.OR(RRR$fmi)$ORCI,3)
-
 
 
