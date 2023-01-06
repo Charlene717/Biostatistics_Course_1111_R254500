@@ -24,7 +24,7 @@ source("FUN_Beautify_ggplot.R")
 
 
 #### Current path and new folder setting* ####
-Save.Path = paste0(getwd(),"/",Sys.Date(),"_","CCC19Results")
+Save.Path = paste0(getwd(),"/",Sys.Date(),"_","CCC19_Results")
 
 ## Create new folder
 if (!dir.exists(Save.Path)){dir.create(Save.Path)}
@@ -56,9 +56,11 @@ output0 <- summaryM(dead30 + age_cph + sex + race + region + smoking2 +
                     data = ccc19_lc, test = F, overall = F, na.include=T)
 
 ## Export txt
-sink(paste0(Save.Path,"/CCC19_Descr_Stats_Table1.txt"))
+sink(paste0(Save.Path,"/Table1_CCC19_Descr_Stats.txt"))
  print(output0, long=TRUE, what = "%")
 sink()
+
+write.csv(print(output0, long=TRUE, what = "%"),file=paste0(Save.Path,"/Table1_CCC19_Descr_Stats.csv"))
 
 ## Plot
 plot(output0)
@@ -90,21 +92,22 @@ pdf(file = paste0(Save.Path,"/CCC19_Descr_Stats_Barplot.pdf"),width = 7, height 
   ## Ref: https://cloud.tencent.com/developer/ask/sof/103120
   ## Add percent
   sex.df <- left_join(sex.df,sex.df %>% group_by(Group) %>% summarise(sum(Number)))
-  sex.df$Percent <-  sprintf("%0.2f", sex.df$Number/sex.df$`sum(Number)`*100 %>% as.numeric())
+  sex.df$Percent <-  sprintf("%0.1f", sex.df$Number/sex.df$`sum(Number)`*100 %>% as.numeric())
 
   ## print sex
   library(ggplot2)
   Plt.SexDS <- ggplot(data=sex.df, aes(x = Group, y = Number, fill = sex.df[,1])) +
-    geom_bar(stat="identity", position=position_dodge(),alpha=.7)
+                      geom_bar(stat="identity", position=position_dodge(),alpha=.7)
   Plt.SexDS
   Plt.SexDS %>% FUN_Beautify_ggplot +
-    scale_fill_manual(Var.set[i],values=c("#bf54a3","#5b46a3","#41548a","#45856c","#747575")) +
-    geom_text(aes(label=Number),position = position_dodge(0.95), vjust=-0.6, size=6,angle =45, colour="#c70e67") +
-    geom_text(aes(label=paste0(Percent,"%")),position = position_dodge(0.9), vjust=0.5, size=3,colour = "#2a2e2d",angle =45)+
-    ylim(0, 1300)-> Plt.SexDS_B
+                scale_fill_manual(Var.set[i],values=c("#bf54a3","#5b46a3","#41548a","#45856c","#747575")) +
+                geom_text(aes(label=paste0(Percent,"%")),position = position_dodge(0.95), vjust=-0.6, size=4,angle =45, colour="#c70e67") +
+                geom_text(aes(label=Number),position = position_dodge(0.9), vjust=0.5, size=3,colour = "#2a2e2d",angle =45)+
+                ylim(0, 1300)-> Plt.SexDS_B
   Plt.SexDS_B %>% print()
   }
 dev.off()
+
 # ## Export pdf
 # pdf(file = paste0(Save.Path,"/CCC19_Descr_Stats_Barplot_",Var.set[i],".pdf"),width = 7, height = 7 )
 # Plt.SexDS_B
@@ -140,10 +143,11 @@ fill_data <- function(impute = Imp.data0 , data = ccc19_lc, im) {
                                    list.out = TRUE,
                                    pr = FALSE))
 }
+
 ## Number of imputations
 Imputations <- Imp.data0$n.impute
 
-
+##**********************************************************************************************************************************##
 ## PS matching + logistic regression analysis
 models.PSM.rem <- lapply(1:Imputations, function(im1) {
   #im1 <- 5
@@ -164,6 +168,7 @@ models.PSM.rem <- lapply(1:Imputations, function(im1) {
                             cancer_status_v2 + severity_of_covid_19_v2 + ac_apa
   match.it <- do.call(matchit, list(formula = formula.match, data = full_dat1, method = "nearest",
                                     ratio=2, caliper = 0.3, replace = F))
+
   # match.it$nn
   # plot(match.it, type = "jitter", interactive = F)
   # plot(match.it, type = "histogram", interactive = F)
@@ -176,15 +181,15 @@ models.PSM.rem <- lapply(1:Imputations, function(im1) {
   # full_dat1$distance <- fitted(fit0 <- glm(formula = formula.match, data = full_dat1, family = "binomial"))
   # PS.4density(full_dat1, treatment = "treatment_rem", main = "Before matching") # before matching
 
-  ## Create Table 1 after PSM
-  #output1 <- summaryM(age_cph + sex + race + region + smoking2 +
-  #                    obesitylevel + dm2 + pulm + card + renal + htn + ecogcat2 +
-  #                    cancer_status_v2 + severity_of_covid_19_v2 + ac_apa
-  #                    ~ treatment_rem,
-  #                    data = dta_m, overall = F)
-  #sink(paste0("Table1_afterPSM.txt"))
-  #  print(output1, long=TRUE, what = "%")
-  #sink()
+  # Create Table 1 after PSM
+  output1 <- summaryM(age_cph + sex + race + region + smoking2 +
+                     obesitylevel + dm2 + pulm + card + renal + htn + ecogcat2 +
+                     cancer_status_v2 + severity_of_covid_19_v2 + ac_apa
+                     ~ treatment_rem,
+                     data = dta_m, overall = F)
+  sink(paste0(Save.Path,"/Table1_CCC19_afterPSM.txt"))
+   print(output1, long=TRUE, what = "%")
+  sink()
 
   # A formula for logistic regression analysis
   formula1 <- dead30 ~ treatment_rem + age_cph + sex + race + region + smoking2 +
@@ -205,9 +210,6 @@ round(coefs.to.OR(RRR$fmi)$ORCI,3)
 
 
 
-
-
-
 ##**********************************************************************************************************************************##
 ## IPTW (Inverse Probability Treatment Weighting) + logistic regression analysis
 models.IPTW.rem <- lapply(1:Imputations, function(im1) {
@@ -221,8 +223,8 @@ models.IPTW.rem <- lapply(1:Imputations, function(im1) {
                    family = "multinomial",
                    numerator = ~ 1, ## must exist
                    denominator = ~ age_cph + sex + race + region + smoking2 +
-                     obesitylevel + dm2 + pulm + card + renal + htn + ecogcat2 +
-                     cancer_status_v2 + severity_of_covid_19_v2 + ac_apa,
+                                   obesitylevel + dm2 + pulm + card + renal + htn + ecogcat2 +
+                                   cancer_status_v2 + severity_of_covid_19_v2 + ac_apa,
                    data = full_dat1)
   full_dat1$ipws <- temp$ipw.weights
 
@@ -231,19 +233,18 @@ models.IPTW.rem <- lapply(1:Imputations, function(im1) {
   full_dat1$ipws <- ifelse(full_dat1$ipws > Qs[2], Qs[2], full_dat1$ipws)
   full_dat1$ipws <- ifelse(full_dat1$ipws < Qs[1], Qs[1], full_dat1$ipws)
 
-  #weighteddata <- svydesign(ids = ~ 1, weights = ~ ipws, data = full_dat1)
-  #weightedtable <- svyCreateTableOne(vars = colnames(full_dat1)[-c(1, 17:20)],
-  #                                   strata = "treatment_rem", data = weighteddata, test=FALSE)
-  #sink(paste0("Table1_postIPTW_one.txt"))
-  #print(weightedtable, smd=TRUE)
-  #sink()
+  weighteddata <- svydesign(ids = ~ 1, weights = ~ ipws, data = full_dat1)
+  weightedtable <- svyCreateTableOne(vars = colnames(full_dat1)[-c(1, 17:20)],
+                                    strata = "treatment_rem", data = weighteddata, test=FALSE)
+  sink(paste0(Save.Path,"/Table1_CCC19_postIPTW_one.txt"))
+  print(weightedtable, smd=TRUE)
+  sink()
 
 
   # A formula for logistic regression analysis
   formula1 <- dead30 ~ treatment_rem + age_cph + sex + race + region + smoking2 +
-    obesitylevel + dm2 + pulm + card + renal + htn + ecogcat2 +
-    cancer_status_v2 + severity_of_covid_19_v2 +
-    ac_apa
+                       obesitylevel + dm2 + pulm + card + renal + htn + ecogcat2 +
+                       cancer_status_v2 + severity_of_covid_19_v2 + ac_apa
 
   fit.bin <- svyglm(formula1,
                     design = svydesign(~ 1, weights = ~ ipws, data = full_dat1), family = "binomial")
@@ -254,4 +255,13 @@ RRR <- CombineImputation(models.IPTW.rem)
 
 round(coefs.to.OR(RRR$fmi)$ORCI,3)
 
+
+write.csv(round(coefs.to.OR(RRR$fmi)$ORCI,3),file=paste0(Save.Path,"/Table1_CCC19_IPTW_LR.csv"))
+
+
+# library("survminer")
+# ggforest(RRR)
+
+##### save.image #####
+save.image(paste0(Save.Path,"/CCC19_LogisticReg.RData"))
 
